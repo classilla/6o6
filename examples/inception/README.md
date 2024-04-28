@@ -28,59 +28,59 @@ Here's how each stage is laid out in memory (on both platforms):
 
 ### Stage 1 (6o6)
 
-0000: 6o6 zero page for stage 1
-0100: 6o6 stack for stage 1
-0800: "hypervisor"
-0a00: 6o6 kernel for stage 1
-0b00: 6o6 harness for stage 1
+0000: 6o6 zero page for stage 1  
+0100: 6o6 stack for stage 1  
+0800: "hypervisor"  
+0a00: 6o6 kernel for stage 1  
+0b00: 6o6 harness for stage 1  
 0c00: 6o6 VM for stage 1
 
-3600: payload zero page, mapped to $0000
-3700: payload stack, mapped to $0100
+3600: payload zero page, mapped to $0000  
+3700: payload stack, mapped to $0100  
 3800: payload code, mapped to $0a00
 
 ### Stage 2 (6o6 in 6o6)
 
-0000: 6o6 zero page for stage 2
-0100: 6o6 stack for stage 2
-0800: "hypervisor"
-0a00: 6o6 kernel for stage 2
-0b00: 6o6 harness for stage 2
+0000: 6o6 zero page for stage 2  
+0100: 6o6 stack for stage 2  
+0800: "hypervisor"  
+0a00: 6o6 kernel for stage 2  
+0b00: 6o6 harness for stage 2  
 0c00: 6o6 VM for stage 2
 
-3600: 6o6 zero page for stage 1, mapped to $0000
-3700: 6o6 stack for stage 1, mapped to $0100
-3800: 6o6 kernel for stage 1, mapped to $0a00
-3900: 6o6 harness for stage 1, mapped to $0b00
+3600: 6o6 zero page for stage 1, mapped to $0000  
+3700: 6o6 stack for stage 1, mapped to $0100  
+3800: 6o6 kernel for stage 1, mapped to $0a00  
+3900: 6o6 harness for stage 1, mapped to $0b00  
 3a00: 6o6 VM for stage 1, mapped to $0c00
 
-6400: payload zero page, mapped to $3600, mapped to $0000
-6500: payload stack, mapped to $3700, mapped to $0100
+6400: payload zero page, mapped to $3600, mapped to $0000  
+6500: payload stack, mapped to $3700, mapped to $0100  
 6600: payload code, mapped to $3800, mapped to $0a00
 
 ### Stage 3 (6o6 in 6o6 in 6o6)
 
-0000: 6o6 zero page for stage 3
-0100: 6o6 stack for stage 3
-0800: "hypervisor"
-0a00: 6o6 kernel for stage 3
-0b00: 6o6 harness for stage 3
+0000: 6o6 zero page for stage 3  
+0100: 6o6 stack for stage 3  
+0800: "hypervisor"  
+0a00: 6o6 kernel for stage 3  
+0b00: 6o6 harness for stage 3  
 0c00: 6o6 VM for stage 3
 
-3600: 6o6 zero page for stage 2, mapped to $0000
-3700: 6o6 stack for stage 2, mapped to $0100
-3800: 6o6 kernel for stage 2, mapped to $0a00
-3900: 6o6 harness for stage 2, mapped to $0b00
+3600: 6o6 zero page for stage 2, mapped to $0000  
+3700: 6o6 stack for stage 2, mapped to $0100  
+3800: 6o6 kernel for stage 2, mapped to $0a00  
+3900: 6o6 harness for stage 2, mapped to $0b00  
 3a00: 6o6 VM for stage 2, mapped to $0c00
 
-6400: 6o6 zero page for stage 1, mapped to $3600, mapped to $0000
-6500: 6o6 stack for stage 1, mapped to $3700, mapped to $0100
-6600: 6o6 kernel for stage 1, mapped to $3800, mapped to $0a00
-6700: 6o6 harness for stage 1, mapped to $3900, mapped to $0b00
+6400: 6o6 zero page for stage 1, mapped to $3600, mapped to $0000  
+6500: 6o6 stack for stage 1, mapped to $3700, mapped to $0100  
+6600: 6o6 kernel for stage 1, mapped to $3800, mapped to $0a00  
+6700: 6o6 harness for stage 1, mapped to $3900, mapped to $0b00  
 6800: 6o6 VM for stage 1, mapped to $3a00, mapped to $0c00
 
-9200: payload zero page, mapped to $6400, mapped to $3600, mapped to $0000
-9300: payload stack, mapped to $6500, mapped to $3700, mapped to $0100
+9200: payload zero page, mapped to $6400, mapped to $3600, mapped to $0000  
+9300: payload stack, mapped to $6500, mapped to $3700, mapped to $0100  
 9400: payload code, mapped to $6600, mapped to $3800, mapped to $0a00
 
 ## Using this in your own code
