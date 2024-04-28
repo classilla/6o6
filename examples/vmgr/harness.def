@@ -1,0 +1,16 @@
+/* where ROM is */
+#define ROMSTART	$c100
+/* what ROM is */
+#define ROMSIZE		16128
+/* what it is */
+
+/* map the high byte into geoRAM page register */
+
+/* ptr must be unchanged at the end! ensure carry is not set for the rol */
+#define MPEEK(ptr) \
+	lda ptr+1:cmp curpage:beq *+20: \
+	sta curpage:and #63:sta $dffe: \
+	lda ptr+1:and #192:clc:rol:rol:rol:sta $dfff: \
+	ldx ptr:lda $de00,x
+
+#define ZMPEEK ldx dptr:lda #0:sta $dffe:sta $dfff:sta curpage:lda $de00,x

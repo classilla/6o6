@@ -1,0 +1,36 @@
+; 6o6 defines
+
+	; simulated register locations in zero page
+areg	= $8b
+xreg	= $8c
+yreg	= $8d
+preg	= $fb
+sptr	= $fc
+pc	= $fd	; and $fe
+
+	; extra helpings mode
+ehmode	= $a6
+
+	; work area for memory access
+dptr	= $8e	; and $8f
+
+	; work area for instruction dispatch
+hold0	= $9f
+hold1	= $a5
+abandon	= $9e	; save stack pointer if we abandon ship (protection fault?)
+
+	; reserved work areas for the harness/kernel (if they want)
+hhold0	= $be
+hhold1	= $bf
+
+	; return codes
+#define	R_OK		0	/* all's well */
+#define	R_BRK		1	/* break has occurred (replaces B flag) */
+#define	R_MFAULT	2	/* memory fault propagated from harness */
+#define R_BADINS	3	/* totally illegal instruction */
+#define	R_UDI		4	/* user-defined (debug) irq -- check x for
+					the passed parameter */
+#define R_STACKUNDER	5	/* stack underflow, propagated from harness
+					or dorts */
+#define R_STACKOVER	6	/* stack overflow, same */
+

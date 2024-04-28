@@ -1,0 +1,62 @@
+--- a/lib6502.c	2024-04-05 20:45:53
++++ b/lib6502.c	2024-04-05 20:57:34
+@@ -183,26 +183,26 @@
+ 	int v= (int8_t)A + (int8_t)B + getC();						\
+ 	fetch();									\
+ 	A= c;										\
+ 	setNVZC((A & 0x80), (((A & 0x80) > 0) ^ (v < 0)), (A == 0), ((c & 0x100) > 0));	\
+ 	next();										\
+       }											\
+     else										\
+       {											\
+-	int l, h, s;									\
++	int l, h, s, c= 0;								\
+ 	/* inelegant & slow, but consistent with the hw for illegal digits */		\
+ 	l= (A & 0x0F) + (B & 0x0F) + getC();						\
+ 	h= (A & 0xF0) + (B & 0xF0);							\
+ 	if (l >= 0x0A) { l -= 0x0A;  h += 0x10; }					\
+-	if (h >= 0xA0) { h -= 0xA0; }							\
++	if (h >= 0xA0) { h -= 0xA0;  c= 1; }						\
+ 	fetch();									\
+ 	s= h | (l & 0x0F);								\
+ 	/* only C is valid on NMOS 6502 */						\
+-	setNVZC(s & 0x80, !(((A ^ B) & 0x80) && ((A ^ s) & 0x80)), !s, !!(h & 0x80));	\
++	setNVZC(s & 0x80, !(((A ^ B) & 0x80) && ((A ^ s) & 0x80)), !s, c);		\
+ 	A= s;										\
+ 	tick(1);									\
+ 	next();										\
+       }											\
+   }
+ 
+ #define sbc(ticks, adrmode)								\
+   adrmode(ticks);									\
+@@ -216,26 +216,26 @@
+ 	fetch();									\
+ 	A= c;										\
+ 	setNVZC(A & 0x80, ((A & 0x80) > 0) ^ ((v & 0x100) != 0), A == 0, c >= 0);	\
+ 	next();										\
+       }											\
+     else										\
+       {											\
+ 	/* this is verbatim ADC, with a 10's complemented operand */			\
+-	int l, h, s;									\
++	int l, h, s, c= 0;								\
+ 	B= 0x99 - B;									\
+ 	l= (A & 0x0F) + (B & 0x0F) + getC();						\
+ 	h= (A & 0xF0) + (B & 0xF0);							\
+ 	if (l >= 0x0A) { l -= 0x0A;  h += 0x10; }					\
+-	if (h >= 0xA0) { h -= 0xA0; }							\
++	if (h >= 0xA0) { h -= 0xA0;  c= 1; }						\
+ 	fetch();									\
+ 	s= h | (l & 0x0F);								\
+ 	/* only C is valid on NMOS 6502 */						\
+-	setNVZC(s & 0x80, !(((A ^ B) & 0x80) && ((A ^ s) & 0x80)), !s, !!(h & 0x80));	\
++	setNVZC(s & 0x80, !(((A ^ B) & 0x80) && ((A ^ s) & 0x80)), !s, c);		\
+ 	A= s;										\
+ 	tick(1);									\
+ 	next();										\
+       }											\
+   }
+ 
+ #define cmpR(ticks, adrmode, R)			\
+   adrmode(ticks);				\

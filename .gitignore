@@ -1,0 +1,13 @@
+*.a
+*.b
+*.o
+*.do
+*.d64
+*.jar
+*.lst
+*.prg
+*.sym
+bak/
+bak/*
+todo
+

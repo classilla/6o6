@@ -1,0 +1,9 @@
+/* ptr must remain unchanged at the end! */
+#define MPEEK(ptr) lda ptr+1:tax:bmi *+6:\
+	sta $00:bpl *+4:\
+	sta $01:\
+	and #$7f:clc:adc #>EMURAM:sta ptr+1:\
+	ldy #0:lda (ptr),y:stx ptr+1
+
+/* zero page has to wrap locations, so look at low byte only */
+#define ZMPEEK sta $00:ldx dptr:lda EMURAM,x

@@ -1,0 +1,66 @@
+; demonstration program utility defines
+
+#ifndef EMURAM
+EMURAM	= $3600
+#endif
+PAYLOAD	= EMURAM+$0200
+KERNEL	= $0a00
+HARNESS	= $0b00
+VMSADDR	= $0c00
+BAILOUT	= VMSADDR+0
+DORTS	= VMSADDR+3
+VMU	= VMSADDR+15
+
+	; a ROM routine to take a character in .a and display it
+CHROUT	= $fded
+	; carriage return character
+CR	= $8d
+	; a flag location that can be live during the run of the demo program
+FLAG	= $4e
+
+; 6o6 configuration
+
+#define HELPINGS		1
+#define HELPINGSALWAYS		1
+#define FAULTLESS		0
+#define	NO_SADDR_IN_FILE	1
+
+; 6o6 defines
+
+	; simulated register locations in zero page
+	; these must be preserved between calls to the vm
+areg	= $eb
+xreg	= $ec
+yreg	= $ed
+preg	= $ee
+sptr	= $ef
+pc	= $06	; and $07
+
+	; extra helpings mode
+ehmode	= $fc
+
+	; work area for memory access
+dptr	= $08	; and $09
+
+	; work area for instruction dispatch
+hold0	= $fa
+hold1	= $fb	; need not be contiguous
+abandon	= $fd	; save stack pointer if we abandon ship (protection fault?)
+
+	; reserved work areas for the harness/kernel (if they want)
+	; these should be contiguous
+hhold0	= $45
+hhold1	= $46
+
+; 6o6 return codes
+
+#define	R_OK		0	/* all's well */
+#define	R_BRK		1	/* break has occurred (replaces B flag) */
+#define	R_MFAULT	2	/* memory fault propagated from harness */
+#define R_BADINS	3	/* totally illegal instruction */
+#define	R_UDI		4	/* user-defined (debug) irq -- check x for
+					the passed parameter */
+#define R_STACKUNDER	5	/* stack underflow, propagated from harness
+					or dorts */
+#define R_STACKOVER	6	/* stack overflow, same */
+

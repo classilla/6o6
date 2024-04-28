@@ -1,0 +1,14 @@
+/* accesses to $1000 and up should be redirected to $4e00 */
+/* accesses to addresses below that should be redirected to $4c00 */
+/* note: this will allow addresses to wrap and alias, so it can see all RAM */
+
+/* ptr must be unchanged at the end! */
+#define MPEEK(ptr) \
+	ldx ptr+1:txa:cpx #3:bcc *+7:lda #R_MFAULT:jmp BAILOUT: \
+	adc FLAG:adc FLAG:adc FLAG:adc #>EMURAM:sta ptr+1:\
+	ldy #0:lda (ptr),y:stx ptr+1
+
+/* the full dptr may not be populated */
+#define ZMPEEK ldx dptr:lda FLAG:bne *+8: \
+		lda EMURAM,x:clc:bcc *+5: \
+		lda EMURAM+$0300,x

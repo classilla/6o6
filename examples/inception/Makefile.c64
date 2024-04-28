@@ -1,0 +1,19 @@
+CP	= cp
+RM	= rm
+XA	= xa
+
+.SUFFIXES: .asm .o .prg
+
+incept.prg: incept.asm 6o6.o harness.o kernel.o payload.o
+	$(XA) -o $@ -DCONFIGFILE=c64.def -DHSTUB=harness.def -DC64=1 \
+		-a -O PETSCII -P $@.lst \
+		-l $@.sym incept.asm
+	$(CP) $@ ~/c64/prg || echo "Never mind."
+
+.asm.o:
+	$(XA) -o $@ -DCONFIGFILE=c64.def -DHSTUB=harness.def -DC64=1 \
+		-a -O PETSCII \
+		-l $@.sym $<
+
+clean:
+	$(RM) -f *.o *.sym *.lst *.prg

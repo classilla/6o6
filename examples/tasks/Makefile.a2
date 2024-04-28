@@ -1,0 +1,30 @@
+LS	= ls
+RM	= rm
+XA	= xa
+AWK	= awk
+CAT	= cat
+
+# Apple Commander
+ACJAR	= ac.jar
+JAVA	= java
+
+EMURAM	= 17152
+
+.SUFFIXES: .asm .o .b .do
+
+tasks.do: tasks.b
+	$(JAVA) -jar $(ACJAR) -dos140 $@ tasks
+	$(JAVA) -jar $(ACJAR) -p $@ tasks B 0x0803 < $<
+
+tasks.b: tasks.asm 6o6.o harness.o payload1.o payload2.o
+	$(XA) -o $@ -DCONFIGFILE=a2.def -DHSTUB=harness.def -DA2=1 \
+		-DEMURAM=$(EMURAM) -a -O HIGH -P $@.lst \
+		-l $@.sym tasks.asm
+
+.asm.o:
+	$(XA) -o $@ -DCONFIGFILE=a2.def -DHSTUB=harness.def -DA2=1 \
+		-DEMURAM=$(EMURAM) -a -O HIGH \
+		-l $@.sym $<
+
+clean:
+	$(RM) -f *.o *.sym *.lst *.prg *.do *.b

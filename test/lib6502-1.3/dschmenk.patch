@@ -1,0 +1,85 @@
+diff --git a/src/lib6502/lib6502.c b/src/lib6502/lib6502.c
+index 84549fb1..6f6b54b3 100644
+--- a/src/lib6502/lib6502.c
++++ b/src/lib6502/lib6502.c
+@@ -584,7 +584,7 @@ enum {
+   tick(ticks);								\
+   fflush(stdout);							\
+   fprintf(stderr, "\nundefined instruction %02X\n", memory[PC-1]);	\
+-  return;
++  return 0;
+ 
+ #define phR(ticks, adrmode, R)			\
+   fetch();					\
+@@ -744,7 +744,7 @@ static void oops(void)
+ }
+ 
+ 
+-void M6502_run(M6502 *mpu)
++int M6502_run(M6502 *mpu)
+ {
+ #if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+ 
+@@ -768,9 +768,10 @@ void M6502_run(M6502 *mpu)
+   register void **itabp= &itab[0];
+   register void  *tpc;
+ 
+-# define begin()				fetch();  next()
++//# define begin()				fetch();  next()
++# define begin()				goto *(itabp[memory[PC++]])
+ # define fetch()				tpc= itabp[memory[PC++]]
+-# define next()					goto *tpc
++# define next()					if (STEP) { PC--; externalise(); return 1; } goto *tpc
+ # define dispatch(num, name, mode, cycles)	_##num: name(cycles, mode) oops();  next()
+ # define end()
+ 
+@@ -778,7 +779,7 @@ void M6502_run(M6502 *mpu)
+ 
+ # define begin()				for (;;) switch (memory[PC++]) {
+ # define fetch()
+-# define next()					break
++# define next()					if (STEP) { externalise(); return 1; } break
+ # define dispatch(num, name, mode, cycles)	case 0x##num: name(cycles, mode);  next()
+ # define end()					}
+ 
+@@ -790,8 +791,9 @@ void M6502_run(M6502 *mpu)
+   byte		  A, X, Y, P, S;
+   M6502_Callback *readCallback=  mpu->callbacks->read;
+   M6502_Callback *writeCallback= mpu->callbacks->write;
++  unsigned int STEP; 
+ 
+-# define internalise()	A= mpu->registers->a;  X= mpu->registers->x;  Y= mpu->registers->y;  P= mpu->registers->p;  S= mpu->registers->s;  PC= mpu->registers->pc
++# define internalise()	STEP=mpu->flags&M6502_SingleStep; A= mpu->registers->a;  X= mpu->registers->x;  Y= mpu->registers->y;  P= mpu->registers->p;  S= mpu->registers->s;  PC= mpu->registers->pc
+ # define externalise()	mpu->registers->a= A;  mpu->registers->x= X;  mpu->registers->y= Y;  mpu->registers->p= P;  mpu->registers->s= S;  mpu->registers->pc= PC
+ 
+   internalise();
+@@ -809,6 +811,7 @@ void M6502_run(M6502 *mpu)
+ # undef end
+ 
+   (void)oops;
++  return 0;
+ }
+ 
+ 
+diff --git a/src/lib6502/lib6502.h b/src/lib6502/lib6502.h
+index 70398335..b4e106c1 100644
+--- a/src/lib6502/lib6502.h
++++ b/src/lib6502/lib6502.h
+@@ -48,14 +48,15 @@ struct _M6502
+ enum {
+   M6502_RegistersAllocated = 1 << 0,
+   M6502_MemoryAllocated    = 1 << 1,
+-  M6502_CallbacksAllocated = 1 << 2
++  M6502_CallbacksAllocated = 1 << 2,
++  M6502_SingleStep         = 1 << 3
+ };
+ 
+ extern M6502 *M6502_new(M6502_Registers *registers, M6502_Memory memory, M6502_Callbacks *callbacks);
+ extern void   M6502_reset(M6502 *mpu);
+ extern void   M6502_nmi(M6502 *mpu);
+ extern void   M6502_irq(M6502 *mpu);
+-extern void   M6502_run(M6502 *mpu);
++extern int    M6502_run(M6502 *mpu);
+ extern int    M6502_disassemble(M6502 *mpu, uint16_t addr, char buffer[64]);
+ extern void   M6502_dump(M6502 *mpu, char buffer[64]);
+ extern void   M6502_delete(M6502 *mpu);

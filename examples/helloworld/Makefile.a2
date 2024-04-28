@@ -1,0 +1,28 @@
+LS	= ls
+RM	= rm
+XA	= xa
+AWK	= awk
+CAT	= cat
+
+# Apple Commander
+ACJAR	= ac.jar
+JAVA	= java
+
+.SUFFIXES: .asm .o .b .do
+
+hello.do: hello.b
+	$(JAVA) -jar $(ACJAR) -dos140 $@ hello
+	$(JAVA) -jar $(ACJAR) -p $@ hello B 0x0803 < $<
+
+hello.b: hello.asm 6o6.o harness.o kernel.o payload.o
+	$(XA) -o $@ -DCONFIGFILE=a2.def -DHSTUB=harness.def -DA2=1 \
+		-a -O HIGH -P $@.lst \
+		-l $@.sym hello.asm
+
+.asm.o:
+	$(XA) -o $@ -DCONFIGFILE=a2.def -DHSTUB=harness.def -DA2=1 \
+		-a -O HIGH \
+		-l $@.sym $<
+
+clean:
+	$(RM) -f *.o *.sym *.lst *.prg *.do *.b
