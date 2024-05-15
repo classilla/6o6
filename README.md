@@ -36,7 +36,7 @@ After the instruction or instruction group is completed, the VM then returns to 
 
 ## General system requirements
 
-6o6 runs on any NMOS or CMOS 6502 with sufficient RAM and at least 11 free bytes of zero page space, four of which must be two-byte pairs for address storage. However, because it uses self-modifying code for speed, it is currently not possible to run it directly from an EPROM or other read-only memory, though it may be copied from one into RAM on startup.
+6o6 runs on any NMOS or CMOS 6502 with sufficient RAM and at least 11 free bytes of zero page space, four of which must be two-byte pairs for address storage. However, because it uses self-modifying code for speed, it is currently not possible to run it directly from an EPROM or other read-only memory, though it may be copied from one into RAM on startup (it should compress easily as much of the code is unrolled).
 
 6o6 is cross-assembled from assembly source into a 6502-compatible binary using the portable [`xa65`](http://www.floodgap.com/retrotech/xa/) assembler, which is in basic C and compiles on a wide variety of operating systems and architectures. `xa65` (hereafter `xa`, its primary executable) has a C-like preprocessor which 6o6 uses heavily for inlining and macros. As such, other cross-assemblers are not currently supported (see _Issues and pull requests_ for more about this - there's a reason it's the way it is).
 
@@ -194,7 +194,7 @@ In the list below, addresses are given relative to the starting address of your 
 * Push to the stack (3). A single byte is passed in the accumulator that should be pushed on the stack. Your harness is responsible for managing the stack pointer itself. The actual implementation of the stack and its location is irrelevant to 6o6. You can clobber A, X and Y.
 * Pull from the stack (6). The top byte should be pulled from the stack and returned in the accumulator. Your harness is responsible for managing the stack pointer itself. The actual implementation of the stack and its location is irrelevant to 6o6. You can clobber X and Y.
 * Simulate `TSX` (9). Your routine should return either the actual stack pointer or a purported such value in the X register, simulating what `TSX` would do. The actual value is irrelevant to 6o6. You can clobber A and Y.
-* Simulate `TXS` (12). A byte index is passed in the X register which should be moved to the stack pointer, simulating what `TXS` would do, though whether you choose to use this value or generate a different one is irrelevant to 6o6. You can clobber A and Y.
+* Simulate `TXS` (12). A byte index is passed in the X register which should be moved to the stack pointer, simulating what `TXS` would do, though whether you choose to use this value or generate a different one is irrelevant to 6o6. You can clobber A, X and Y.
 * Store to memory (15). A pointer containing the 16-bit virtual address is passed in `dptr` and the byte to be stored in the accumulator. This routine should convert the virtual address to a physical one and perform the store (doing any necessary banking, paging or protection). You can clobber A, X and Y, but you must not change `dptr`.
 
 ### Inline fetch macros
@@ -206,15 +206,18 @@ As the contents of the macros are inlined directly into 6o6, they should be as s
 You can provide these macros on the command line, though it's simpler to put them in a separate file and provide that file to `xa` with `-DHSTUB=filename`. You can also place them in your configuration file.
 
 * `#define MPEEK(x)`. Given a 16-bit virtual address stored in the pointer `x`, convert the virtual address to a physical one, fetch the byte at that location (doing any necessary banking, paging or protection), and return it in the accumulator. You can clobber X and Y, but you must not change `x`.
-* `define ZMPEEK`. Given a virtual zero page address stored in the LSB of `dptr`, convert the virtual zero page address to a physical one, fetch the byte at that location (doing any necessary banking, paging or protection), and return it in the accumulator. **Note that the MSB of `dptr` may not necessarily be zero during this call.** You can clobber X and Y, but you must not change `dptr`.
+* `#define ZMPEEK`. Given a virtual zero page address stored in the LSB of `dptr`, convert the virtual zero page address to a physical one, fetch the byte at that location (doing any necessary banking, paging or protection), and return it in the accumulator. **Note that the MSB of `dptr` may not necessarily be zero during this call.** You can clobber X and Y, but you must not change `dptr`.
 
 ## Future improvements under consideration
 
-There is no timeframe or guarantee for these. Please don't open issues about them unless you have code (see below).
+There is no timeframe or guarantee for these. Please don't open issues about them unless you have code (see below). They are roughly in order from lowest to highest hanging "fruit."
 
+* Optionally filter `opplp` from setting the I bit for even more interrupt control.
+* Audit the `ldy #0` at the end of the dispatch call to ensure nothing depends on that anymore. Unfortunately, it's too big to move the entire instruction dispatch routine into zero page a la [`CHRGET` on Microsoft BASIC systems](https://github.com/itsvic-dev/msbasic-v6502/blob/master/chrget.s). Even if we had it in two parts any improvement would be outweighed by the jump we'd need to do.
+* Consider a fast inline macro path for zero-page stores like that for fetches (full address stores would still be a harness subroutine call).
+* Consider treating instruction fetches differently from data fetches in the harness to optimize the common case of retrieving two or three sequential bytes at once. This could even conceivably be used for prefetch in "extra helpings." However, such a scheme would make the VM somewhat more complex and would certainly require changes to the calling convention for the harness.
 * Allow NMOS 6502s to emulate CMOS 6502s (and/or R65C02s), just as this allows CMOS 65C02s to emulate NMOS 6502s, modulo ALU and flag differences. This would also allow CMOS 65C02s to fully virtualize themselves, naturally. It would optionally add the extra opcodes, either manually on NMOS systems or using the same ALU approach on CMOS ones.
 * Ability to run from ROM, in such a way that does not degrade current performance.
-* Consider a fast inline path for zero-page stores like that for fetches (full address stores would still be a harness subroutine call).
 * Explore a peephole pre-assembler for eliminating some potentially redundant instructions with how the inline fetch macros are integrated.
 * Explore some other targeted unrolling optimizations.
 
